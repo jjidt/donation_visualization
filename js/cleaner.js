@@ -1,11 +1,9 @@
-var outerResults;
-
 var rootNode = {
           "id": 2752,
           "candidateName": "Starr",
           "node_type": "candidate",
+          "total": 0
       };
-
 
 var clean = function(arr) {
   var results = [];
@@ -21,22 +19,25 @@ var clean = function(arr) {
     indexer ++;
   });
 
-  var combinedTotals = [];
-  var total;
-  var grandTotal = 0;
+  function compare_by_name(a,b) {
+    if (a.contributorName < b.contributorName)
+       return 1;
+    if (a.contributorName > b.contributorName)
+      return -1;
+    return 0;
+  }
 
-  for(var i = 0; i < results.length; i++){
-    if (results[i].hasOwnProperty('contributionAmount')){
-      grandTotal += results[i].contributionAmount;
-      total = results[i].contributionAmount;
-      for(var j = i + 1; j < results.length; j++){
-        if(results[i].contributorName === results[j].contributorName){
-          results[i].contributionAmount += results[j].contributionAmount;
-          results.splice(j,1)
-        }
-      }
+  results.sort(compare_by_name);
+  rootNode.total += results[0].contributionAmount
+  for(var i = 1; i < results.length; ){
+    rootNode.total += results[i].contributionAmount;
+    if(results[i-1].contributorName === results[i].contributorName){
+        results[i-1].contributionAmount += results[i].contributionAmount;
+        results.splice(i, 1);
+    } else {
+        i++;
     }
-  };
+  }
 
    function compare(a,b) {
     if (a.contributionAmount < b.contributionAmount)
@@ -54,16 +55,17 @@ var clean = function(arr) {
     results[i].contributionAmount = parseFloat(results[i].contributionAmount).toFixed(2);
   };
 
+  rootNode.total = parseFloat(rootNode.total).toFixed(2);
+
   results.unshift(rootNode);
   return(results);
 }
 
-var edges = [];
-var tempNode;
-
 var edger = function(data){
-  for(var i = 0; i < data.length; i++){
-    for(var j = i+1; j < data.length; j++) {
+  var edges = [];
+  var tempNode;
+  for(var i = 0; i < data.length - 1; i++){
+    for(var j = 1; j < data.length; j++) {
       if(data[i].id === data[j].candidateID){
         tempNode = {
           "source": data[i].id,
